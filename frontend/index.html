@@ -350,59 +350,79 @@
         function clearConsole() { consoleOutput.textContent = ''; }
 
         async function runPython() {
-            if (isRunning) return;
-            isRunning = true;
-            
-            runBtn.className = 'bg-slate-800 text-slate-400 text-xs px-4 py-1.5 rounded font-medium border border-slate-700/60 transition flex items-center gap-2 cursor-wait';
-            runBtn.innerHTML = `<svg class="w-3 h-3 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke-width="3"/></svg><span>Running...</span>`;
-            
-            clearConsole();
-            consoleOutput.textContent += `> Connecting to cloud sandbox... \n`;
+    if (isRunning) return;
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/run`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ files, activeFile })
-                });
+    // Check if the file contains an input statement
+    let programInputs = [];
+    if (editor.value.includes('input(')) {
+        const userInputString = await openModal({
+            title: 'Program Inputs Detected',
+            msg: 'Your Python code uses input(). Provide arguments separated by commas (e.g. Alice, 25) for each input call:',
+            showInput: true,
+            confirmText: 'Run with Inputs'
+        });
+        
+        if (userInputString === null) return; // User pressed cancel
+        if (userInputString.trim().length > 0) {
+            programInputs = userInputString.split(',').map(item => item.trim());
+        }
+    }
 
-                if (!response.ok) throw new Error(`Cloud Error: ${response.statusText}`);
+    isRunning = true;
+    runBtn.className = 'bg-slate-800 text-slate-400 text-xs px-4 py-1.5 rounded font-medium border border-slate-700/60 transition flex items-center gap-2 cursor-wait';
+    runBtn.innerHTML = `<svg class="w-3 h-3 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke-width="3"/></svg><span>Running...</span>`;
+    
+    clearConsole();
+    consoleOutput.textContent += `> Connecting to cloud sandbox... \n`;
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let chunkBuffer = '';
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/run`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                files, 
+                activeFile, 
+                inputs: programInputs // Pass our arrays forward!
+            })
+        });
 
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
+        if (!response.ok) throw new Error(`Cloud Error: ${response.statusText}`);
 
-                    chunkBuffer += decoder.decode(value, { stream: true });
-                    const lines = chunkBuffer.split('\n');
-                    chunkBuffer = lines.pop(); 
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let chunkBuffer = '';
 
-                    for (const line of lines) {
-                        if (!line.trim()) continue;
-                        try {
-                            const event = JSON.parse(line);
-                            if (event.type === 'stdout') {
-                                consoleOutput.textContent += event.text;
-                            } else if (event.type === 'stderr') {
-                                consoleOutput.innerHTML += `<span class="text-rose-400">${event.text}</span>`;
-                            } else if (event.type === 'exit') {
-                                consoleOutput.innerHTML += `<span class="text-slate-500 italic">\n[Process completed with exit code ${event.code}]\n</span>`;
-                            }
-                            consoleOutput.scrollTop = consoleOutput.scrollHeight;
-                        } catch (e) { /* Ignore non-JSON output buffers */ }
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            chunkBuffer += decoder.decode(value, { stream: true });
+            const lines = chunkBuffer.split('\n');
+            chunkBuffer = lines.pop(); 
+
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                    const event = JSON.parse(line);
+                    if (event.type === 'stdout') {
+                        consoleOutput.textContent += event.text;
+                    } else if (event.type === 'stderr') {
+                        consoleOutput.innerHTML += `<span class="text-rose-400">${event.text}</span>`;
+                    } else if (event.type === 'exit') {
+                        consoleOutput.innerHTML += `<span class="text-slate-500 italic">\n[Process completed with exit code ${event.code}]\n</span>`;
                     }
-                }
-            } catch (err) {
-                consoleOutput.innerHTML += `<span class="text-rose-400">\nConnection Failure: Cannot hit backend. Ensure your Render backend is awake and the BACKEND_URL in index.html is correct.\n</span>`;
-            } finally {
-                isRunning = false;
-                runBtn.className = 'bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-1.5 rounded font-medium border border-indigo-500/40 shadow-sm transition flex items-center gap-2';
-                runBtn.innerHTML = `<span>Run Code</span>`;
+                    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+                } catch (e) {}
             }
         }
+    } catch (err) {
+        consoleOutput.innerHTML += `<span class="text-rose-400">\nConnection Failure: Cannot hit backend.\n</span>`;
+    } finally {
+        isRunning = false;
+        runBtn.className = 'bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-1.5 rounded font-medium border border-indigo-500/40 shadow-sm transition flex items-center gap-2';
+        runBtn.innerHTML = `<span>Run Code</span>`;
+    }
+}
 
         // --- Focus Mode & Resizer ---
         let isFocusMode = false;
