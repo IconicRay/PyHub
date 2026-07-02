@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pyHub</title>
+    <link rel="icon" type="image/png" href="favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap" rel="stylesheet">
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'], mono: ['"Cascadia Code"', 'monospace'] } } } }</script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0B0F17; }
+        ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 3px; }
+        textarea:focus { outline: none; }
+        #tabs-bar::-webkit-scrollbar { height: 0px; }
+        .kbd { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+        .spinner { animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        * { transition-timing-function: cubic-bezier(.4,0,.2,1); }
+        button { transition-duration: 200ms; }
+        body { transition: background-color 0.5s ease; }
+        body.focus-active { background-color: #05070a; }
+        
+        /* Modal & UI Transitions */
+        #modal-backdrop, #search-backdrop { transition: opacity 200ms ease; }
+        #modal-backdrop.hidden, #search-backdrop.hidden { opacity: 0; pointer-events: none; display: flex !important; }
+        #modal-box { transition: transform 250ms cubic-bezier(0.175, 0.885, 0.32, 1.1), opacity 200ms ease; transform: scale(0.95) translateY(10px); opacity: 0; }
+        #search-box { transition: transform 200ms cubic-bezier(.34,1.56,.64,1), opacity 180ms ease; transform: scale(0.96) translateY(-10px); opacity: 0; }
+        #modal-backdrop:not(.hidden) #modal-box, #search-backdrop:not(.hidden) #search-box { transform: scale(1) translateY(0); opacity: 1; }
+        
+        .toast-in { animation: toastSlideIn 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+        @keyframes toastSlideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        
+        #resizer.dragging { background-color: #6366f1 !important; }
+        body.resizing-col { cursor: col-resize; user-select: none; }
+        body.resizing-row { cursor: row-resize; user-select: none; }
+        body.resizing-col *, body.resizing-row * { transition: none !important; }
+    </style>
+</head>
+<body class="bg-[#0B0F17] text-slate-200 min-h-screen flex flex-col antialiased selection:bg-indigo-500/30">
+
+    <header class="h-14 border-b border-slate-800/80 bg-[#0B0F17] px-5 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div id="status-indicator" class="h-2.5 w-2.5 rounded-full bg-emerald-500"></div>
+            <span class="font-semibold text-sm">pyHub <span class="text-slate-500 font-normal">/ python IDE</span></span>
+        </div>
+        <div class="flex items-center gap-2.5">
+            <span class="hidden sm:flex items-center gap-1 text-[11px] text-slate-500 mr-2"><span class="kbd">Ctrl</span><span class="kbd">Enter</span></span>
+            <button onclick="openSearchModal()" title="Search Files (Ctrl+P)" class="bg-slate-800/40 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-xs px-3 py-1.5 rounded border border-slate-700/60 transition flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Search
+            </button>
+            <button onclick="toggleFocusMode()" id="focus-btn" title="Fullscreen & Lo-Fi Radio" class="bg-slate-800/40 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-xs px-3 py-1.5 rounded border border-slate-700/60 transition flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg> <span id="focus-text">Focus</span>
+            </button>
+            <button onclick="runPython()" id="run-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-1.5 rounded font-medium border border-indigo-500/40 shadow-sm transition flex items-center gap-2">
+                <span>Run Code</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden h-[calc(100vh-3.5rem)]">
+        <section class="flex-1 flex flex-col relative min-w-0 min-h-0 border-b md:border-b-0 md:border-r border-slate-800">
+            <div id="tabs-bar" class="bg-[#0B0F17] px-2 pt-2 border-b border-slate-800/60 flex items-end gap-1 overflow-x-auto"></div>
+            <div class="flex-1 relative flex min-h-0">
+                <div id="line-numbers" class="w-11 bg-[#0D131F] text-right pr-3 pt-4 font-mono text-xs text-slate-600 select-none border-r border-slate-900/80 leading-6 overflow-hidden shrink-0"></div>
+                <textarea id="code-editor" class="flex-1 bg-[#0D131F] p-4 font-mono text-sm text-slate-300 leading-6 resize-none w-full h-full block focus:ring-0" spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <div class="h-7 bg-[#0B0F17] border-t border-slate-800 px-4 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                <span id="active-filename-display">main.py</span>
+                <span class="flex items-center gap-3"><span id="save-status" class="text-emerald-400 opacity-0 transition-opacity">● saved</span><span id="char-count">0 chars</span></span>
+            </div>
+        </section>
+
+        <div id="resizer" class="shrink-0 bg-slate-800/80 hover:bg-indigo-500 transition-colors md:w-1 md:h-auto h-1 w-full cursor-row-resize md:cursor-col-resize z-10"></div>
+
+        <section id="console-panel" class="w-full md:w-[440px] lg:w-[540px] bg-[#090D14] flex flex-col shrink-0 min-h-0">
+            <div class="bg-[#090D14] px-4 h-9 border-b border-slate-800/60 flex items-center justify-between shrink-0">
+                <span class="text-[11px] uppercase tracking-wider text-slate-400 font-medium font-mono">Terminal Output</span>
+                <button onclick="clearConsole()" class="text-[11px] text-slate-500 hover:text-slate-300 transition font-mono">Clear</button>
+            </div>
+            <pre id="console-output" class="flex-1 p-4 font-mono text-[12.5px] overflow-y-auto whitespace-pre-wrap leading-relaxed text-slate-300">// Cloud link active. Ready to run.</pre>
+        </section>
+    </main>
+
+    <div id="search-backdrop" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] flex items-start justify-center pt-24 p-4" onclick="closeSearchModal(event)">
+        <div id="search-box" class="bg-[#0D131F] border border-slate-700 rounded-lg w-full max-w-xl shadow-2xl flex flex-col" onclick="event.stopPropagation()">
+            <div class="p-3.5 border-b border-slate-800/80 flex items-center gap-3">
+                <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input id="search-input" placeholder="Search by filename or code content..." class="flex-1 bg-transparent border-none focus:outline-none text-sm font-mono text-slate-200 placeholder-slate-600" autocomplete="off" />
+                <span class="text-[10px] text-slate-500 font-mono bg-slate-800/60 px-1.5 py-0.5 rounded border border-slate-700/50">ESC</span>
+            </div>
+            <div id="search-results" class="max-h-[50vh] overflow-y-auto p-2 space-y-1"></div>
+        </div>
+    </div>
+
+    <div id="modal-backdrop" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
+        <div id="modal-box" class="bg-[#0D131F] border border-slate-700 rounded-lg w-full max-w-sm shadow-2xl flex flex-col overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-800/80 bg-[#090D14]">
+                <h3 id="modal-title" class="text-sm font-semibold text-slate-100">Modal Title</h3>
+            </div>
+            <div class="px-4 py-4 flex flex-col gap-3">
+                <p id="modal-msg" class="text-xs text-slate-300 leading-relaxed"></p>
+                <input id="modal-input" type="text" class="hidden w-full bg-[#05070A] border border-slate-700 rounded px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors" autocomplete="off" spellcheck="false" />
+            </div>
+            <div class="px-4 py-3 border-t border-slate-800/80 flex justify-end gap-2 bg-[#090D14]">
+                <button id="modal-cancel" class="text-xs font-medium px-4 py-1.5 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">Cancel</button>
+                <button id="modal-confirm" class="text-xs font-medium px-4 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[90] flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURATION (IMPORTANT!)
+        // Replace this with your live Render URL.
+        // ==========================================
+        const BACKEND_URL = 'https://sourcepad-backend.onrender.com';
+
+        // --- Custom UI Systems ---
+        function toast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            let colors = 'border-slate-700 text-slate-200 bg-[#0D131F]';
+            if (type === 'error') colors = 'border-rose-500/50 text-rose-300 bg-[#160B0F]';
+            if (type === 'success') colors = 'border-emerald-500/50 text-emerald-300 bg-[#0A1610]';
+            
+            el.className = `toast-in border shadow-xl rounded-md px-4 py-2.5 text-xs font-mono pointer-events-auto ${colors}`;
+            el.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(el);
+            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+        }
+
+        function openModal({ title, msg = '', showInput = false, confirmText = 'Confirm', danger = false }) {
+            return new Promise((resolve) => {
+                const backdrop = document.getElementById('modal-backdrop');
+                const input = document.getElementById('modal-input');
+                const confirmBtn = document.getElementById('modal-confirm');
+                const cancelBtn = document.getElementById('modal-cancel');
+                
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('modal-msg').textContent = msg;
+                document.getElementById('modal-msg').style.display = msg ? 'block' : 'none';
+
+                input.classList.toggle('hidden', !showInput);
+                if (showInput) input.value = '';
+
+                confirmBtn.textContent = confirmText;
+                confirmBtn.className = `text-xs font-medium px-4 py-1.5 rounded text-white shadow-sm transition ${danger ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'}`;
+                
+                backdrop.classList.remove('hidden');
+                if (showInput) setTimeout(() => input.focus(), 100);
+
+                const cleanup = (result) => {
+                    backdrop.classList.add('hidden');
+                    confirmBtn.onclick = cancelBtn.onclick = input.onkeydown = null;
+                    document.removeEventListener('keydown', handleEscape);
+                    resolve(result);
+                };
+
+                const handleEscape = (e) => { if (e.key === 'Escape') cleanup(null); };
+
+                confirmBtn.onclick = () => cleanup(showInput ? input.value.trim() : true);
+                cancelBtn.onclick = () => cleanup(null);
+                document.addEventListener('keydown', handleEscape);
+                if (showInput) input.onkeydown = (e) => { if (e.key === 'Enter') cleanup(input.value.trim()); };
+            });
+        }
+
+        // --- Workspace Initialization ---
+        const STORAGE_KEY = 'sourcepad_workspace_final';
+        let isRunning = false;
+
+        let files = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+            'main.py': `import utils\n\nprint("Hello from the Render Cloud Sandbox!")\nutils.compute_stats()`,
+            'utils.py': `def compute_stats():\n    print("Executing synchronous cross-file logic instantly.")`
+        };
+        let activeFile = Object.keys(files)[0] || 'main.py';
+
+        const editor = document.getElementById('code-editor');
+        const tabsBar = document.getElementById('tabs-bar');
+        const consoleOutput = document.getElementById('console-output');
+        const runBtn = document.getElementById('run-btn');
+        const lineNumbers = document.getElementById('line-numbers');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTabs();
+            loadFileToEditor(activeFile);
+
+            editor.addEventListener('input', () => {
+                files[activeFile] = editor.value;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+                updateEditorUI();
+            });
+
+            editor.addEventListener('scroll', () => { lineNumbers.scrollTop = editor.scrollTop; });
+
+            // Keyboard Shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (document.activeElement === editor && e.key === 'Tab') {
+                    e.preventDefault();
+                    const s = editor.selectionStart, end = editor.selectionEnd;
+                    editor.value = editor.value.slice(0, s) + '    ' + editor.value.slice(end);
+                    editor.selectionStart = editor.selectionEnd = s + 4;
+                    editor.dispatchEvent(new Event('input'));
+                } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    runPython();
+                } else if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
+                    e.preventDefault();
+                    openSearchModal();
+                } else if (e.key === 'Escape') {
+                    closeSearchModal();
+                }
+            });
+        });
+
+        // --- File Management ---
+        function renderTabs() {
+            tabsBar.innerHTML = '';
+            Object.keys(files).forEach((name) => {
+                const isActive = name === activeFile;
+                const tab = document.createElement('div');
+                tab.className = `group flex items-center gap-2 pl-3 pr-2 h-8 rounded-t-md text-xs font-mono cursor-pointer border-t border-l border-r transition select-none ${isActive ? 'bg-[#0D131F] border-slate-800 text-indigo-300' : 'bg-transparent border-transparent text-slate-500 hover:text-slate-300'}`;
+                tab.innerHTML = `<span>${name}</span>`;
+
+                if (Object.keys(files).length > 1) {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.innerHTML = '&times;';
+                    closeBtn.className = 'opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition text-sm leading-none px-0.5';
+                    closeBtn.onclick = async (e) => { 
+                        e.stopPropagation(); 
+                        const confirmed = await openModal({ title: 'Delete File', msg: `Are you sure you want to delete "${name}"?`, confirmText: 'Delete', danger: true });
+                        if (confirmed) {
+                            delete files[name];
+                            if (activeFile === name) activeFile = Object.keys(files)[0];
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+                            renderTabs(); loadFileToEditor(activeFile);
+                            toast(`Deleted ${name}`, 'info');
+                        }
+                    };
+                    tab.appendChild(closeBtn);
+                }
+                tab.onclick = () => { activeFile = name; renderTabs(); loadFileToEditor(name); };
+                tabsBar.appendChild(tab);
+            });
+
+            // Add File Button
+            const addTab = document.createElement('button');
+            addTab.className = 'flex items-center justify-center h-8 w-8 text-slate-500 hover:text-slate-200 hover:bg-slate-900/60 rounded-t-md transition text-base shrink-0';
+            addTab.innerText = '+';
+            addTab.onclick = async () => {
+                let name = await openModal({ title: 'New File', msg: 'Enter filename:', showInput: true, confirmText: 'Create' });
+                if (name) {
+                    if (!name.endsWith('.py')) name += '.py';
+                    if (files[name]) { toast("File exists", "error"); return; }
+                    files[name] = '# New python file\n';
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+                    activeFile = name; renderTabs(); loadFileToEditor(activeFile);
+                    toast(`Created ${name}`, 'success');
+                }
+            };
+            tabsBar.appendChild(addTab);
+        }
+
+        function loadFileToEditor(name) {
+            editor.value = files[name] || '';
+            document.getElementById('active-filename-display').innerText = name;
+            updateEditorUI();
+        }
+
+        function updateEditorUI() {
+            document.getElementById('char-count').innerText = `${editor.value.length} chars`;
+            const lines = editor.value.split('\n').length;
+            lineNumbers.innerHTML = Array(lines).fill(0).map((_, i) => `${i + 1}<br>`).join('');
+            
+            const status = document.getElementById('save-status');
+            status.style.opacity = '1';
+            clearTimeout(window.saveTimeout);
+            window.saveTimeout = setTimeout(() => { status.style.opacity = '0'; }, 900);
+        }
+
+        // --- Search / Command Palette ---
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        const searchBackdrop = document.getElementById('search-backdrop');
+
+        function openSearchModal() {
+            searchBackdrop.classList.remove('hidden');
+            searchInput.value = '';
+            setTimeout(() => searchInput.focus(), 50);
+            executeSearch('');
+        }
+
+        function closeSearchModal(event) {
+            if (event && event.target !== searchBackdrop) return;
+            searchBackdrop.classList.add('hidden');
+            editor.focus(); 
+        }
+
+        searchInput.addEventListener('input', (e) => executeSearch(e.target.value));
+
+        function executeSearch(query) {
+            const results = [];
+            const q = query.toLowerCase();
+
+            for (const [name, content] of Object.entries(files)) {
+                if (name.toLowerCase().includes(q)) {
+                    results.push({ name, matchType: 'file' });
+                } else if (q.length > 0 && content.toLowerCase().includes(q)) {
+                    const idx = content.toLowerCase().indexOf(q);
+                    const start = Math.max(0, idx - 20);
+                    const end = Math.min(content.length, idx + q.length + 30);
+                    let snippet = content.substring(start, end).replace(/\n/g, '  ');
+                    if (start > 0) snippet = '...' + snippet;
+                    if (end < content.length) snippet = snippet + '...';
+                    results.push({ name, matchType: 'content', snippet });
+                }
+            }
+            
+            searchResults.innerHTML = '';
+            if (results.length === 0) {
+                searchResults.innerHTML = `<div class="text-xs text-slate-500 font-mono p-4 text-center">No matches found.</div>`;
+                return;
+            }
+
+            results.forEach((res) => {
+                const el = document.createElement('div');
+                el.className = 'p-2.5 hover:bg-indigo-500/10 hover:border-indigo-500/30 border border-transparent rounded-md cursor-pointer flex flex-col gap-1 transition group';
+                el.onclick = () => { activeFile = res.name; renderTabs(); loadFileToEditor(activeFile); closeSearchModal(); };
+
+                const headerRow = document.createElement('div');
+                headerRow.className = 'flex items-center justify-between';
+                headerRow.innerHTML = `<span class="text-xs font-mono text-indigo-300">${res.name}</span><span class="text-[10px] uppercase text-slate-500">${res.matchType === 'content' ? 'Code Match' : 'File'}</span>`;
+                el.appendChild(headerRow);
+
+                if (res.snippet) {
+                    const snip = document.createElement('div');
+                    snip.className = 'text-[11px] font-mono text-slate-400 truncate opacity-80 pl-2 border-l border-slate-700/50 mt-1';
+                    snip.textContent = res.snippet;
+                    el.appendChild(snip);
+                }
+                searchResults.appendChild(el);
+            });
+        }
+
+        // --- Execution Engine ---
+        function clearConsole() { consoleOutput.textContent = ''; }
+
+        async function runPython() {
+            if (isRunning) return;
+            isRunning = true;
+            
+            runBtn.className = 'bg-slate-800 text-slate-400 text-xs px-4 py-1.5 rounded font-medium border border-slate-700/60 transition flex items-center gap-2 cursor-wait';
+            runBtn.innerHTML = `<svg class="w-3 h-3 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke-width="3"/></svg><span>Running...</span>`;
+            
+            clearConsole();
+            consoleOutput.textContent += `> Connecting to cloud sandbox... \n`;
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/run`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files, activeFile })
+                });
+
+                if (!response.ok) throw new Error(`Cloud Error: ${response.statusText}`);
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let chunkBuffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    chunkBuffer += decoder.decode(value, { stream: true });
+                    const lines = chunkBuffer.split('\n');
+                    chunkBuffer = lines.pop(); 
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const event = JSON.parse(line);
+                            if (event.type === 'stdout') {
+                                consoleOutput.textContent += event.text;
+                            } else if (event.type === 'stderr') {
+                                consoleOutput.innerHTML += `<span class="text-rose-400">${event.text}</span>`;
+                            } else if (event.type === 'exit') {
+                                consoleOutput.innerHTML += `<span class="text-slate-500 italic">\n[Process completed with exit code ${event.code}]\n</span>`;
+                            }
+                            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+                        } catch (e) { /* Ignore non-JSON output buffers */ }
+                    }
+                }
+            } catch (err) {
+                consoleOutput.innerHTML += `<span class="text-rose-400">\nConnection Failure: Cannot hit backend. Ensure your Render backend is awake and the BACKEND_URL in index.html is correct.\n</span>`;
+            } finally {
+                isRunning = false;
+                runBtn.className = 'bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-1.5 rounded font-medium border border-indigo-500/40 shadow-sm transition flex items-center gap-2';
+                runBtn.innerHTML = `<span>Run Code</span>`;
+            }
+        }
+
+        // --- Focus Mode & Resizer ---
+        let isFocusMode = false;
+        const focusAudio = new Audio('https://coderadio-admin-v2.freecodecamp.org/listen/coderadio/radio.mp3');
+        focusAudio.loop = true; focusAudio.volume = 0.4;
+        
+        async function toggleFocusMode() {
+            const btn = document.getElementById('focus-btn');
+            if (!isFocusMode) {
+                try {
+                    await document.documentElement.requestFullscreen();
+                    focusAudio.play();
+                    isFocusMode = true;
+                    document.body.classList.add('focus-active');
+                    btn.classList.replace('bg-slate-800/40', 'bg-indigo-500/20');
+                    document.getElementById('focus-text').innerText = "Exit";
+                    toast('Deep Work initialized. Radio playing.', 'success');
+                } catch (err) { toast('Could not enter fullscreen.', 'error'); }
+            } else {
+                document.exitFullscreen();
+                focusAudio.pause();
+                isFocusMode = false;
+                document.body.classList.remove('focus-active');
+                btn.classList.replace('bg-indigo-500/20', 'bg-slate-800/40');
+                document.getElementById('focus-text').innerText = "Focus";
+            }
+        }
+        document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && isFocusMode) toggleFocusMode(); });
+
+        const resizer = document.getElementById('resizer');
+        const consolePanel = document.getElementById('console-panel');
+        let isResizing = false;
+        let startX, startY, startWidth, startHeight;
+        let layoutSettings = JSON.parse(localStorage.getItem('sourcepad_layout')) || { width: null, height: null };
+
+        function applyLayout() {
+            if (window.innerWidth >= 768 && layoutSettings.width) {
+                consolePanel.style.width = `${layoutSettings.width}px`; consolePanel.style.height = ''; 
+            } else if (window.innerWidth < 768 && layoutSettings.height) {
+                consolePanel.style.height = `${layoutSettings.height}px`; consolePanel.style.width = ''; 
+            }
+        }
+        applyLayout(); window.addEventListener('resize', applyLayout);
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true; startX = e.clientX; startY = e.clientY;
+            const rect = consolePanel.getBoundingClientRect();
+            startWidth = rect.width; startHeight = rect.height;
+            document.body.classList.add(window.innerWidth >= 768 ? 'resizing-col' : 'resizing-row');
+            resizer.classList.add('dragging'); e.preventDefault(); 
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            if (window.innerWidth >= 768) {
+                consolePanel.style.width = `${Math.max(200, Math.min(startWidth + (startX - e.clientX), window.innerWidth - 300))}px`;
+            } else {
+                consolePanel.style.height = `${Math.max(150, Math.min(startHeight + (startY - e.clientY), window.innerHeight - 200))}px`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isResizing) return;
+            isResizing = false;
+            document.body.classList.remove('resizing-col', 'resizing-row');
+            resizer.classList.remove('dragging');
+            layoutSettings = window.innerWidth >= 768 ? { width: consolePanel.getBoundingClientRect().width } : { height: consolePanel.getBoundingClientRect().height };
+            localStorage.setItem('sourcepad_layout', JSON.stringify(layoutSettings));
+        });
+    </script>
+</body>
+</html>
