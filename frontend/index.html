@@ -4,121 +4,329 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>pyHub</title>
-    <link rel="icon" type="image/png" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap" rel="stylesheet">
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'], mono: ['"Cascadia Code"', 'monospace'] } } } }</script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        theme: {
+                            bg: 'var(--theme-bg)',
+                            panel: 'var(--theme-panel)',
+                            console: 'var(--theme-console)',
+                            border: 'var(--theme-border)',
+                            text: 'var(--theme-text)',
+                            muted: 'var(--theme-muted)',
+                            hover: 'var(--theme-hover)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"Cascadia Code"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-ocean.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.min.css">
+
     <style>
+        /* CSS THEME VARIABLES */
+        :root, body.theme-default {
+            --theme-bg: #0B0F17;
+            --theme-panel: #0D131F;
+            --theme-console: #090D14;
+            --theme-border: rgba(30, 41, 59, 0.8);
+            --theme-text: #e2e8f0;
+            --theme-muted: #94a3b8;
+            --theme-hover: rgba(30, 41, 59, 1);
+        }
+
+        /* DARK THEMES */
+        body.theme-midnight {
+            --cffy-theme-midnight-a0: oklab(20% -0.01 -0.06);
+            --cffy-theme-midnight-a10: oklab(25% -0.01 -0.07);
+            --cffy-theme-midnight-a20: oklab(35% -0.01 -0.08);
+            --cffy-theme-midnight-a30: oklab(70% -0.01 -0.04);
+            --cffy-theme-midnight-a40: oklab(95% 0 -0.02);
+
+            --theme-bg: var(--cffy-theme-midnight-a0);
+            --theme-panel: var(--cffy-theme-midnight-a10);
+            --theme-console: var(--cffy-theme-midnight-a10);
+            --theme-border: var(--cffy-theme-midnight-a20);
+            --theme-text: var(--cffy-theme-midnight-a40);
+            --theme-muted: var(--cffy-theme-midnight-a30);
+            --theme-hover: var(--cffy-theme-midnight-a20);
+        }
+        body.theme-nordic {
+            --cffy-theme-nordic-a0: oklab(30% -0.02 -0.04);
+            --cffy-theme-nordic-a10: oklab(35% -0.02 -0.04);
+            --cffy-theme-nordic-a20: oklab(45% -0.02 -0.04);
+            --cffy-theme-nordic-a30: oklab(80% -0.01 -0.02);
+            --cffy-theme-nordic-a40: oklab(95% -0.01 -0.01);
+
+            --theme-bg: var(--cffy-theme-nordic-a0);
+            --theme-panel: var(--cffy-theme-nordic-a10);
+            --theme-console: var(--cffy-theme-nordic-a10);
+            --theme-border: var(--cffy-theme-nordic-a20);
+            --theme-text: var(--cffy-theme-nordic-a40);
+            --theme-muted: var(--cffy-theme-nordic-a30);
+            --theme-hover: var(--cffy-theme-nordic-a20);
+        }
+        body.theme-rose-pine {
+            --cffy-theme-rose-a0: oklab(22% 0.02 -0.03);
+            --cffy-theme-rose-a10: oklab(27% 0.02 -0.03);
+            --cffy-theme-rose-a20: oklab(37% 0.02 -0.03);
+            --cffy-theme-rose-a30: oklab(70% 0.03 0.01);
+            --cffy-theme-rose-a40: oklab(92% 0.01 -0.01);
+
+            --theme-bg: var(--cffy-theme-rose-a0);
+            --theme-panel: var(--cffy-theme-rose-a10);
+            --theme-console: var(--cffy-theme-rose-a10);
+            --theme-border: var(--cffy-theme-rose-a20);
+            --theme-text: var(--cffy-theme-rose-a40);
+            --theme-muted: var(--cffy-theme-rose-a30);
+            --theme-hover: var(--cffy-theme-rose-a20);
+        }
+
+        /* LIGHT THEMES */
+        body.theme-coconut {
+            --cffy-theme-coconut-a0: oklab(97.1% 0.001 0.009);
+            --cffy-theme-coconut-a10: oklab(92.3% 0.001 0.022);
+            --cffy-theme-coconut-a20: oklab(73.9% 0.027 0.064);
+            --cffy-theme-coconut-a30: oklab(45.4% 0.038 0.056);
+            --cffy-theme-coconut-a40: oklab(30.7% 0.023 0.033);
+
+            --theme-bg: var(--cffy-theme-coconut-a0);
+            --theme-panel: var(--cffy-theme-coconut-a10);
+            --theme-console: var(--cffy-theme-coconut-a10);
+            --theme-border: var(--cffy-theme-coconut-a20);
+            --theme-text: var(--cffy-theme-coconut-a40);
+            --theme-muted: var(--cffy-theme-coconut-a30);
+            --theme-hover: var(--cffy-theme-coconut-a20);
+        }
+        body.theme-paper {
+            --cffy-theme-paper-a0: oklab(96% 0.01 0.02);
+            --cffy-theme-paper-a10: oklab(92% 0.01 0.02);
+            --cffy-theme-paper-a20: oklab(80% 0.01 0.02);
+            --cffy-theme-paper-a30: oklab(50% 0.01 0.01);
+            --cffy-theme-paper-a40: oklab(25% 0.01 0.01);
+
+            --theme-bg: var(--cffy-theme-paper-a0);
+            --theme-panel: var(--cffy-theme-paper-a10);
+            --theme-console: var(--cffy-theme-paper-a10);
+            --theme-border: var(--cffy-theme-paper-a20);
+            --theme-text: var(--cffy-theme-paper-a40);
+            --theme-muted: var(--cffy-theme-paper-a30);
+            --theme-hover: var(--cffy-theme-paper-a20);
+        }
+        body.theme-frost {
+            --cffy-theme-frost-a0: oklab(97% -0.01 -0.02);
+            --cffy-theme-frost-a10: oklab(93% -0.01 -0.02);
+            --cffy-theme-frost-a20: oklab(82% -0.01 -0.02);
+            --cffy-theme-frost-a30: oklab(55% -0.01 -0.03);
+            --cffy-theme-frost-a40: oklab(30% -0.01 -0.03);
+
+            --theme-bg: var(--cffy-theme-frost-a0);
+            --theme-panel: var(--cffy-theme-frost-a10);
+            --theme-console: var(--cffy-theme-frost-a10);
+            --theme-border: var(--cffy-theme-frost-a20);
+            --theme-text: var(--cffy-theme-frost-a40);
+            --theme-muted: var(--cffy-theme-frost-a30);
+            --theme-hover: var(--cffy-theme-frost-a20);
+        }
+        body.theme-bloom {
+            --cffy-theme-bloom-a0: oklab(46% 0.192 0.096);
+            --cffy-theme-bloom-a10: oklab(70% 0.204 0.072);
+            --cffy-theme-bloom-a20: oklab(80% 0.132 0.036);
+            --cffy-theme-bloom-a30: oklab(98% 0 0);
+
+            --theme-bg: var(--cffy-theme-bloom-a30);
+            --theme-panel: oklab(94% 0.02 0.01);
+            --theme-console: var(--cffy-theme-bloom-a30);
+            --theme-border: oklab(85% 0.02 0.01);
+            --theme-text: var(--cffy-theme-bloom-a0);
+            --theme-muted: var(--cffy-theme-bloom-a20);
+            --theme-hover: oklab(90% 0.02 0.01);
+        }
+
+        /* Base Scrollbars for non-editor elements */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0B0F17; }
-        ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 3px; }
-        textarea:focus { outline: none; }
+        ::-webkit-scrollbar-track { background: var(--theme-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--theme-border); border-radius: 3px; }
         #tabs-bar::-webkit-scrollbar { height: 0px; }
-        .kbd { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+
         .spinner { animation: spin 0.7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         * { transition-timing-function: cubic-bezier(.4,0,.2,1); }
         button { transition-duration: 200ms; }
-        body { transition: background-color 0.5s ease; }
+        body { transition: background-color 0.5s ease; color: var(--theme-text); }
         body.focus-active { background-color: #05070a; }
-        
-        /* Modal & UI Transitions */
-        #modal-backdrop, #search-backdrop { transition: opacity 200ms ease; }
-        #modal-backdrop.hidden, #search-backdrop.hidden { opacity: 0; pointer-events: none; display: flex !important; }
-        #modal-box { transition: transform 250ms cubic-bezier(0.175, 0.885, 0.32, 1.1), opacity 200ms ease; transform: scale(0.95) translateY(10px); opacity: 0; }
+
+        /* Modal Transitions */
+        #modal-backdrop, #search-backdrop, #settings-backdrop { transition: opacity 200ms ease; }
+        #modal-backdrop.hidden, #search-backdrop.hidden, #settings-backdrop.hidden { opacity: 0; pointer-events: none; display: flex !important; }
+        #modal-box, #settings-box { transition: transform 250ms cubic-bezier(0.175, 0.885, 0.32, 1.1), opacity 200ms ease; transform: scale(0.95) translateY(10px); opacity: 0; }
         #search-box { transition: transform 200ms cubic-bezier(.34,1.56,.64,1), opacity 180ms ease; transform: scale(0.96) translateY(-10px); opacity: 0; }
-        #modal-backdrop:not(.hidden) #modal-box, #search-backdrop:not(.hidden) #search-box { transform: scale(1) translateY(0); opacity: 1; }
-        
+        #modal-backdrop:not(.hidden) #modal-box, #search-backdrop:not(.hidden) #search-box, #settings-backdrop:not(.hidden) #settings-box { transform: scale(1) translateY(0); opacity: 1; }
+
         .toast-in { animation: toastSlideIn 300ms cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
         @keyframes toastSlideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
-        
+
         #resizer.dragging { background-color: #6366f1 !important; }
         body.resizing-col { cursor: col-resize; user-select: none; }
         body.resizing-row { cursor: row-resize; user-select: none; }
         body.resizing-col *, body.resizing-row * { transition: none !important; }
 
-        /* Syntax Highlighting Token Colors (mirrors the app's indigo/emerald/rose/slate palette) */
-        #highlight-code .tok-keyword   { color: #818CF8; font-weight: 600; } /* indigo-400 */
-        #highlight-code .tok-boolnone  { color: #A78BFA; font-weight: 600; } /* violet-400 */
-        #highlight-code .tok-string    { color: #34D399; } /* emerald-400 */
-        #highlight-code .tok-number    { color: #FBBF24; } /* amber-400 */
-        #highlight-code .tok-comment   { color: #64748B; font-style: italic; } /* slate-500 */
-        #highlight-code .tok-decorator { color: #E879F9; } /* fuchsia-400 */
-        #highlight-code .tok-selfcls   { color: #FDA4AF; font-style: italic; } /* rose-300 */
-        #highlight-code .tok-function  { color: #38BDF8; } /* sky-400 */
-        #highlight-code .tok-class     { color: #5EEAD4; } /* teal-300 */
-        #highlight-code .tok-builtin   { color: #22D3EE; } /* cyan-400 */
+        /* --- CODEMIRROR OVERRIDES & CUSTOM SCROLLBARS --- */
+        .CodeMirror {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            height: 100%; width: 100%;
+            font-family: 'Cascadia Code', monospace !important;
+            font-size: 13.5px;
+            line-height: 1.6;
+            background-color: transparent !important;
+            color: var(--theme-text) !important;
+        }
+        .CodeMirror-gutters {
+            background-color: var(--theme-panel) !important;
+            border-right: 1px solid var(--theme-border) !important;
+            padding-right: 5px;
+        }
+        .CodeMirror-linenumber { color: var(--theme-muted) !important; }
+        .CodeMirror-cursor { border-left: 2px solid var(--theme-text) !important; }
+        .CodeMirror-selected { background-color: rgba(99, 102, 241, 0.3) !important; }
 
-        /* Overlay editor: textarea text is invisible, the <pre> beneath supplies the colored text */
-        #code-editor { caret-color: #e2e8f0; }
+        /* Ensure ALL Light Themes have readable code tokens */
+        .theme-coconut .CodeMirror-line,
+        .theme-paper .CodeMirror-line,
+        .theme-frost .CodeMirror-line {
+            filter: brightness(0.4) contrast(1.5) saturate(1.5);
+        }
+
+        /* Custom DOM-based Scrollbar Styling */
+        .CodeMirror-simplescroll-vertical, .CodeMirror-simplescroll-horizontal {
+            background-color: var(--theme-panel) !important;
+            border-left: 1px solid var(--theme-border) !important;
+            width: 10px !important;
+        }
+        .CodeMirror-simplescroll-scrollbar {
+            background-color: var(--theme-muted) !important;
+            border-radius: 5px !important;
+            border: 2px solid var(--theme-panel) !important;
+            transition: background-color 0.2s;
+        }
+        .CodeMirror-simplescroll-scrollbar:hover {
+            background-color: var(--theme-text) !important;
+        }
     </style>
 </head>
-<body class="bg-[#0B0F17] text-slate-200 min-h-screen flex flex-col antialiased selection:bg-indigo-500/30">
+<body class="bg-theme-bg text-theme-text min-h-screen flex flex-col antialiased selection:bg-indigo-500/30 overflow-hidden">
 
-    <header class="h-14 border-b border-slate-800/80 bg-[#0B0F17] px-5 flex items-center justify-between sticky top-0 z-50">
+    <header class="h-14 border-b border-theme-border bg-theme-bg px-5 flex items-center justify-between sticky top-0 z-50">
         <div class="flex items-center gap-3">
             <div id="status-indicator" class="h-2.5 w-2.5 rounded-full bg-emerald-500"></div>
-            <span class="font-semibold text-sm">pyHub <span class="text-slate-500 font-normal">/ python IDE</span></span>
+            <span class="font-semibold text-sm text-theme-text">pyHub <span class="text-theme-muted font-normal">/ python IDE</span></span>
         </div>
         <div class="flex items-center gap-2.5">
-            <button onclick="openSearchModal()" title="Search Files (Ctrl+F)" class="bg-slate-800/40 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-xs px-3 py-1.5 rounded border border-slate-700/60 transition flex items-center gap-2">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Search
+            <button onclick="openSearchModal()" title="Search Files (Ctrl+F)" class="group flex items-center bg-theme-panel text-theme-muted hover:text-theme-text hover:bg-theme-hover text-xs px-2 h-8 rounded border border-theme-border w-8 hover:w-[92px] overflow-hidden transition-all duration-300 ease-in-out">
+                <div class="flex items-center justify-center w-4 h-4 shrink-0 mx-auto group-hover:mx-0 transition-all duration-300">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <span class="pl-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out whitespace-nowrap font-medium">Search</span>
             </button>
-            <button onclick="toggleFocusMode()" id="focus-btn" title="Fullscreen & Lo-Fi Radio" class="bg-slate-800/40 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-xs px-3 py-1.5 rounded border border-slate-700/60 transition flex items-center gap-2">
+            <button onclick="toggleFocusMode()" id="focus-btn" title="Fullscreen & Lo-Fi Radio" class="bg-theme-panel text-theme-muted hover:text-theme-text hover:bg-theme-hover text-xs px-3 py-1.5 h-8 rounded border border-theme-border transition flex items-center gap-2">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg> <span id="focus-text">Focus</span>
             </button>
-            <button onclick="runPython()" title="Run Code (Ctrl+Enter)" id="run-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-1.5 rounded font-medium border border-indigo-500/40 shadow-sm transition flex items-center gap-2">
+            <button onclick="openSettingsModal()" title="Theme Settings" class="bg-theme-panel text-theme-muted hover:text-theme-text hover:bg-theme-hover text-xs px-2 py-1.5 h-8 rounded border border-theme-border transition flex items-center justify-center gap-2">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+            <button onclick="runPython()" title="Run Code (Ctrl+Enter)" id="run-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 h-8 rounded font-medium border border-indigo-500/40 shadow-sm transition flex items-center gap-2 ml-1">
                 <span>Run</span>
             </button>
         </div>
     </header>
 
-    <main class="flex-1 flex flex-col md:flex-row overflow-hidden h-[calc(100vh-3.5rem)]">
-        <section class="flex-1 flex flex-col relative min-w-0 min-h-0 border-b md:border-b-0 md:border-r border-slate-800">
-            <div id="tabs-bar" class="bg-[#0B0F17] px-2 pt-2 border-b border-slate-800/60 flex items-end gap-1 overflow-x-auto"></div>
-            <div class="flex-1 relative flex min-h-0">
-                <div id="line-numbers" class="w-11 bg-[#0D131F] text-right pr-3 pt-4 font-mono text-xs text-slate-600 select-none border-r border-slate-900/80 leading-6 overflow-hidden shrink-0"></div>
-                <textarea id="code-editor" class="flex-1 bg-[#0D131F] p-4 font-mono text-sm text-slate-300 leading-6 resize-none w-full h-full block focus:ring-0" spellcheck="false" autocomplete="off"></textarea>
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden h-[calc(100vh-3.5rem)] w-full">
+        <section class="flex-1 flex flex-col relative min-w-0 min-h-0 border-b md:border-b-0 md:border-r border-theme-border shrink w-full">
+            <div id="tabs-bar" class="bg-theme-bg px-2 pt-2 border-b border-theme-border flex items-end gap-1 overflow-x-auto shrink-0"></div>
+
+            <div class="flex-1 relative min-w-0 min-h-0 bg-theme-panel" id="editor-wrapper">
+                <div id="editor-container" class="absolute inset-0"></div>
             </div>
-            <div class="h-7 bg-[#0B0F17] border-t border-slate-800 px-4 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+
+            <div class="h-7 bg-theme-bg border-t border-theme-border px-4 flex items-center justify-between text-[10px] text-theme-muted font-mono shrink-0 cursor-default">
                 <span id="active-filename-display">main.py</span>
-                <span class="flex items-center gap-3"><span id="save-status" class="text-emerald-400 opacity-0 transition-opacity">● saved</span><span id="char-count">0 chars</span></span>
+                <span id="char-count">0 chars</span>
             </div>
         </section>
 
-        <div id="resizer" class="shrink-0 bg-slate-800/80 hover:bg-indigo-500 transition-colors md:w-1 md:h-auto h-1 w-full cursor-row-resize md:cursor-col-resize z-10"></div>
+        <div id="resizer" class="shrink-0 bg-theme-border hover:bg-indigo-500 transition-colors md:w-1 md:h-auto h-1 w-full cursor-row-resize md:cursor-col-resize z-10"></div>
 
-        <section id="console-panel" class="w-full md:w-[440px] lg:w-[540px] bg-[#090D14] flex flex-col shrink-0 min-h-0">
-            <div class="bg-[#090D14] px-4 h-9 border-b border-slate-800/60 flex items-center justify-between shrink-0">
-                <span class="text-[11px] uppercase tracking-wider text-slate-400 font-medium font-mono">Terminal Output</span>
-                <button onclick="clearConsole()" class="text-[11px] text-slate-500 hover:text-slate-300 transition font-mono">Clear</button>
+        <section id="console-panel" class="w-full md:w-[440px] lg:w-[540px] bg-theme-console flex flex-col shrink-0 min-h-0 relative">
+            <div class="bg-theme-console px-4 h-9 border-b border-theme-border flex items-center justify-between shrink-0">
+                <span class="text-[11px] uppercase tracking-wider text-theme-muted font-medium font-mono">Terminal Output</span>
+                <button onclick="clearConsole()" class="text-[11px] text-theme-muted hover:text-theme-text transition font-mono">Clear</button>
             </div>
-            <pre id="console-output" class="flex-1 p-4 font-mono text-[12.5px] overflow-y-auto whitespace-pre-wrap leading-relaxed text-slate-300">// Cloud link active. Ready to run.</pre>
+            <pre id="console-output" class="flex-1 p-4 font-sans text-[14px] overflow-y-auto whitespace-pre-wrap leading-relaxed text-theme-text">// Ready to execute code.</pre>
         </section>
     </main>
 
+    <div id="settings-backdrop" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4" onclick="closeSettingsModal(event)">
+        <div id="settings-box" class="bg-theme-panel border border-theme-border rounded-lg w-full max-w-[500px] shadow-2xl flex flex-col overflow-hidden" onclick="event.stopPropagation()">
+            <div class="px-4 py-3 border-b border-theme-border bg-theme-bg flex justify-between items-center">
+                <h3 class="text-sm font-semibold text-theme-text flex items-center gap-2">
+                    <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Theme Settings
+                </h3>
+                <button onclick="closeSettingsModal()" class="text-theme-muted hover:text-theme-text">&times;</button>
+            </div>
+
+            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
+                <div class="md:col-span-2 text-xs font-semibold text-theme-muted uppercase tracking-wider mb-1">Dark Themes</div>
+                <button onclick="setTheme('default')" class="flex items-center justify-between p-3 rounded bg-theme-bg border border-theme-border hover:border-indigo-500 transition-colors text-sm font-medium">Default <span id="check-default" class="text-indigo-400 hidden">✓</span></button>
+                <button onclick="setTheme('midnight')" class="flex items-center justify-between p-3 rounded bg-theme-bg border border-theme-border hover:border-indigo-500 transition-colors text-sm font-medium">Midnight <span id="check-midnight" class="text-indigo-400 hidden">✓</span></button>
+                <button onclick="setTheme('nordic')" class="flex items-center justify-between p-3 rounded bg-theme-bg border border-theme-border hover:border-indigo-500 transition-colors text-sm font-medium">Nordic <span id="check-nordic" class="text-indigo-400 hidden">✓</span></button>
+                <button onclick="setTheme('rose-pine')" class="flex items-center justify-between p-3 rounded bg-theme-bg border border-theme-border hover:border-indigo-500 transition-colors text-sm font-medium">Rosé Pine <span id="check-rose-pine" class="text-indigo-400 hidden">✓</span></button>
+
+                <div class="md:col-span-2 text-xs font-semibold text-theme-muted uppercase tracking-wider mt-2 mb-1">Light Themes</div>
+                <button onclick="setTheme('bloom')" class="flex items-center justify-between p-3 rounded bg-theme-bg border border-theme-border hover:border-indigo-500 transition-colors text-sm font-medium">Bloom <span id="check-bloom" class="text-indigo-400 hidden">✓</span></button>
+                <button onclick="setTheme('paper')" class="flex items-center justify-between p-3 rounded bg-theme-bg border border-theme-border hover:border-indigo-500 transition-colors text-sm font-medium">Paper <span id="check-paper" class="text-indigo-400 hidden">✓</span></button>
+                <button onclick="setTheme('frost')" class="flex items-center justify-between p-3 rounded bg-theme-bg border border-theme-border hover:border-indigo-500 transition-colors text-sm font-medium">Frost <span id="check-frost" class="text-indigo-400 hidden">✓</span></button>
+            </div>
+        </div>
+    </div>
+
     <div id="search-backdrop" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] flex items-start justify-center pt-24 p-4" onclick="closeSearchModal(event)">
-        <div id="search-box" class="bg-[#0D131F] border border-slate-700 rounded-lg w-full max-w-xl shadow-2xl flex flex-col" onclick="event.stopPropagation()">
-            <div class="p-3.5 border-b border-slate-800/80 flex items-center gap-3">
+        <div id="search-box" class="bg-theme-bg border border-theme-border rounded-lg w-full max-w-xl shadow-2xl flex flex-col" onclick="event.stopPropagation()">
+            <div class="p-3.5 border-b border-theme-border flex items-center gap-3">
                 <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input id="search-input" placeholder="Search by filename or code content..." class="flex-1 bg-transparent border-none focus:outline-none text-sm font-mono text-slate-200 placeholder-slate-600" autocomplete="off" />
-                <span class="text-[10px] text-slate-500 font-mono bg-slate-800/60 px-1.5 py-0.5 rounded border border-slate-700/50">ESC</span>
+                <input id="search-input" placeholder="Search by filename or code content..." class="flex-1 bg-transparent border-none focus:outline-none text-sm font-mono text-theme-text placeholder-theme-muted" autocomplete="off" />
+                <span class="text-[10px] text-theme-muted font-mono bg-theme-panel px-1.5 py-0.5 rounded border border-theme-border">ESC</span>
             </div>
             <div id="search-results" class="max-h-[50vh] overflow-y-auto p-2 space-y-1"></div>
         </div>
     </div>
 
     <div id="modal-backdrop" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
-        <div id="modal-box" class="bg-[#0D131F] border border-slate-700 rounded-lg w-full max-w-sm shadow-2xl flex flex-col overflow-hidden">
-            <div class="px-4 py-3 border-b border-slate-800/80 bg-[#090D14]">
-                <h3 id="modal-title" class="text-sm font-semibold text-slate-100">Modal Title</h3>
+        <div id="modal-box" class="bg-theme-bg border border-theme-border rounded-lg w-full max-w-sm shadow-2xl flex flex-col overflow-hidden">
+            <div class="px-4 py-3 border-b border-theme-border bg-theme-panel">
+                <h3 id="modal-title" class="text-sm font-semibold text-theme-text">Modal Title</h3>
             </div>
             <div class="px-4 py-4 flex flex-col gap-3">
-                <p id="modal-msg" class="text-xs text-slate-300 leading-relaxed"></p>
-                <input id="modal-input" type="text" class="hidden w-full bg-[#05070A] border border-slate-700 rounded px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors" autocomplete="off" spellcheck="false" />
+                <p id="modal-msg" class="text-xs text-theme-muted leading-relaxed"></p>
+                <input id="modal-input" type="text" class="hidden w-full bg-theme-panel border border-theme-border rounded px-3 py-2 text-sm font-mono text-theme-text focus:outline-none focus:border-indigo-500 transition-colors" autocomplete="off" spellcheck="false" />
             </div>
-            <div class="px-4 py-3 border-t border-slate-800/80 flex justify-end gap-2 bg-[#090D14]">
-                <button id="modal-cancel" class="text-xs font-medium px-4 py-1.5 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">Cancel</button>
+            <div class="px-4 py-3 border-t border-theme-border flex justify-end gap-2 bg-theme-panel">
+                <button id="modal-cancel" class="text-xs font-medium px-4 py-1.5 rounded text-theme-muted hover:text-theme-text hover:bg-theme-hover transition">Cancel</button>
                 <button id="modal-confirm" class="text-xs font-medium px-4 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition">Confirm</button>
             </div>
         </div>
@@ -126,25 +334,89 @@
 
     <div id="toast-container" class="fixed bottom-5 right-5 z-[90] flex flex-col gap-2 pointer-events-none"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.min.js"></script>
+
     <script>
-        // ==========================================
-        // 1. CONFIGURATION (IMPORTANT!)
-        // Replace this with your live Render URL.
-        // ==========================================
         const BACKEND_URL = 'https://pyhub-61je.onrender.com';
 
-        // --- Custom UI Systems ---
+        // --- Theme Engine ---
+        let currentTheme = localStorage.getItem('pyhub_theme') || 'default';
+        document.body.classList.add(`theme-${currentTheme}`);
+
+        function openSettingsModal() {
+            document.getElementById('settings-backdrop').classList.remove('hidden');
+            // Reset checkmarks
+            document.querySelectorAll('[id^="check-"]').forEach(el => el.classList.add('hidden'));
+
+            // Safely toggle the checkmark
+            const checkIcon = document.getElementById(`check-${currentTheme}`);
+            if (checkIcon) checkIcon.classList.remove('hidden');
+        }
+
+        function closeSettingsModal(e) {
+            if (e && e.target !== document.getElementById('settings-backdrop')) return;
+            document.getElementById('settings-backdrop').classList.add('hidden');
+        }
+
+        function setTheme(theme) {
+            document.body.className = document.body.className.replace(/theme-\S+/g, '');
+            document.body.classList.add(`theme-${theme}`);
+            currentTheme = theme;
+            localStorage.setItem('pyhub_theme', theme);
+            if(cmEditor) cmEditor.refresh(); // Forces code mirror to recalculate scrollbars and paint new colors
+            closeSettingsModal();
+            toast(`Applied ${theme} theme`);
+        }
+
+        // --- UI & Sound ---
+        function playToastSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.05);
+
+                gain.gain.setValueAtTime(0, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.1);
+            } catch(e) {}
+        }
+
         function toast(msg, type = 'info') {
+            playToastSound();
             const container = document.getElementById('toast-container');
             const el = document.createElement('div');
-            let colors = 'border-slate-700 text-slate-200 bg-[#0D131F]';
-            if (type === 'error') colors = 'border-rose-500/50 text-rose-300 bg-[#160B0F]';
-            if (type === 'success') colors = 'border-emerald-500/50 text-emerald-300 bg-[#0A1610]';
-            
-            el.className = `toast-in border shadow-xl rounded-md px-4 py-2.5 text-xs font-mono pointer-events-auto ${colors}`;
+            let extraStyles = '';
+            if (type === 'error') extraStyles = 'border-rose-500/50 text-rose-300 bg-[#160B0F]';
+            if (type === 'success') extraStyles = 'border-emerald-500/50 text-emerald-300 bg-[#0A1610]';
+
+            // 1. Keep the transition utilities here so the browser knows how to fade
+            el.className = `toast-in transition-opacity duration-300 border border-theme-border shadow-xl rounded-md px-4 py-2.5 text-xs font-mono pointer-events-auto flex items-center gap-2 bg-theme-panel text-theme-text ${extraStyles}`;
             el.innerHTML = `<span>${msg}</span>`;
             container.appendChild(el);
-            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+            
+            setTimeout(() => { 
+                // 2. FIX: Remove the entry animation class to unlock the opacity property
+                el.classList.remove('toast-in'); 
+                
+                // 3. Now the transition-opacity class takes over perfectly
+                el.style.opacity = '0'; 
+                
+                setTimeout(() => el.remove(), 300); 
+            }, 2500);
         }
 
         function openModal({ title, msg = '', showInput = false, confirmText = 'Confirm', danger = false }) {
@@ -153,7 +425,7 @@
                 const input = document.getElementById('modal-input');
                 const confirmBtn = document.getElementById('modal-confirm');
                 const cancelBtn = document.getElementById('modal-cancel');
-                
+
                 document.getElementById('modal-title').textContent = title;
                 document.getElementById('modal-msg').textContent = msg;
                 document.getElementById('modal-msg').style.display = msg ? 'block' : 'none';
@@ -163,7 +435,7 @@
 
                 confirmBtn.textContent = confirmText;
                 confirmBtn.className = `text-xs font-medium px-4 py-1.5 rounded text-white shadow-sm transition ${danger ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'}`;
-                
+
                 backdrop.classList.remove('hidden');
                 if (showInput) setTimeout(() => input.focus(), 100);
 
@@ -183,108 +455,61 @@
             });
         }
 
-        // --- Syntax Highlighting Engine (lightweight regex-based Python tokenizer) ---
-        const PY_KEYWORDS = ['and','as','assert','async','await','break','continue','del','elif','else','except','finally','for','from','global','if','import','in','is','lambda','nonlocal','not','or','pass','raise','return','try','while','with','yield'];
-        const PY_BUILTINS = ['abs','all','any','ascii','bin','bool','bytearray','bytes','callable','chr','classmethod','complex','delattr','dict','dir','divmod','enumerate','eval','exec','filter','float','format','frozenset','getattr','globals','hasattr','hash','hex','id','input','int','isinstance','issubclass','iter','len','list','locals','map','max','memoryview','min','next','object','oct','open','ord','pow','print','property','range','repr','reversed','round','set','setattr','slice','sorted','staticmethod','str','sum','super','tuple','type','vars','zip'];
-
-        const TOKEN_REGEX = new RegExp(
-            '(?<comment>#.*)' +
-            '|(?<tstring>"""[\\s\\S]*?"""|\'\'\'[\\s\\S]*?\'\'\')' +
-            '|(?<string>(?:[rRbBfFuU]{1,2})?(?:\'(?:[^\'\\\\\\n]|\\\\.)*\'|"(?:[^"\\\\\\n]|\\\\.)*"))' +
-            '|(?<decorator>@[A-Za-z_]\\w*)' +
-            '|\\b(?<defkw>def|class)(?<defws>\\s+)(?<defname>[A-Za-z_]\\w*)' +
-            '|\\b(?<selfcls>self|cls)\\b' +
-            '|\\b(?<boolnone>True|False|None)\\b' +
-            '|\\b(?<keyword>' + PY_KEYWORDS.join('|') + ')\\b' +
-            '|\\b(?<number>0[xX][0-9a-fA-F]+|0[oO][0-7]+|0[bB][01]+|\\d+\\.\\d*(?:[eE][+-]?\\d+)?|\\.\\d+(?:[eE][+-]?\\d+)?|\\d+(?:[eE][+-]?\\d+)?)[jJ]?\\b' +
-            '|\\b(?<builtin>' + PY_BUILTINS.join('|') + ')(?=\\s*\\()' +
-            '|\\b(?<call>[A-Za-z_]\\w*)(?=\\s*\\()',
-            'g'
-        );
-
-        function escapeHtml(s) {
-            return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-        }
-
-        function highlightPython(code) {
-            let out = '';
-            let last = 0;
-            TOKEN_REGEX.lastIndex = 0;
-            let m;
-            while ((m = TOKEN_REGEX.exec(code))) {
-                out += escapeHtml(code.slice(last, m.index));
-                const g = m.groups;
-                if (g.comment) out += `<span class="tok-comment">${escapeHtml(g.comment)}</span>`;
-                else if (g.tstring) out += `<span class="tok-string">${escapeHtml(g.tstring)}</span>`;
-                else if (g.string) out += `<span class="tok-string">${escapeHtml(g.string)}</span>`;
-                else if (g.decorator) out += `<span class="tok-decorator">${escapeHtml(g.decorator)}</span>`;
-                else if (g.defkw) {
-                    const cls = g.defkw === 'class' ? 'tok-class' : 'tok-function';
-                    out += `<span class="tok-keyword">${g.defkw}</span>${g.defws}<span class="${cls}">${escapeHtml(g.defname)}</span>`;
-                }
-                else if (g.selfcls) out += `<span class="tok-selfcls">${g.selfcls}</span>`;
-                else if (g.boolnone) out += `<span class="tok-boolnone">${g.boolnone}</span>`;
-                else if (g.keyword) out += `<span class="tok-keyword">${g.keyword}</span>`;
-                else if (g.number) out += `<span class="tok-number">${escapeHtml(m[0])}</span>`;
-                else if (g.builtin) out += `<span class="tok-builtin">${g.builtin}</span>`;
-                else if (g.call) out += `<span class="tok-function">${escapeHtml(g.call)}</span>`;
-                last = TOKEN_REGEX.lastIndex;
-                if (m.index === TOKEN_REGEX.lastIndex) TOKEN_REGEX.lastIndex++;
+        document.addEventListener('keydown', (e) => {
+            const searchBackdrop = document.getElementById('search-backdrop');
+            if (e.key === 'Escape' && !searchBackdrop.classList.contains('hidden')) {
+                closeSearchModal();
             }
-            out += escapeHtml(code.slice(last));
-            return out;
-        }
-
-        function updateHighlight() {
-            document.getElementById('highlight-code').innerHTML = highlightPython(editor.value) + '\n';
-        }
+        });
 
         // --- Workspace Initialization ---
         const STORAGE_KEY = 'sourcepad_workspace_final';
         let isRunning = false;
 
         let files = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-            'main.py': `import utils\n\nprint("Hello from the Render Cloud Sandbox!")\nutils.compute_stats()`,
+            'main.py': `import utils\n\nprint("Hello from the Render Cloud Sandbox!")\nutils.compute_stats()\n\n# Keep typing code here to see the custom DOM scrollbars appear!`,
             'utils.py': `def compute_stats():\n    print("Executing synchronous cross-file logic instantly.")`
         };
         let activeFile = Object.keys(files)[0] || 'main.py';
 
-        const editor = document.getElementById('code-editor');
         const tabsBar = document.getElementById('tabs-bar');
         const consoleOutput = document.getElementById('console-output');
         const runBtn = document.getElementById('run-btn');
-        const lineNumbers = document.getElementById('line-numbers');
+        let cmEditor;
 
         window.addEventListener('DOMContentLoaded', () => {
             renderTabs();
+
+            cmEditor = CodeMirror(document.getElementById('editor-container'), {
+                mode: "python",
+                theme: "material-ocean",
+                lineNumbers: true,
+                lineWrapping: true,
+                scrollbarStyle: "simple",
+                indentUnit: 4,
+                matchBrackets: true,
+                extraKeys: {
+                    Tab: function(cm) {
+                        var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                        cm.replaceSelection(spaces);
+                    },
+                    "Ctrl-Enter": () => runPython(),
+                    "Cmd-Enter": () => runPython(),
+                    "Ctrl-F": () => openSearchModal(),
+                    "Cmd-F": () => openSearchModal()
+                }
+            });
+
             loadFileToEditor(activeFile);
 
-            editor.addEventListener('input', () => {
-                files[activeFile] = editor.value;
+            cmEditor.on('change', () => {
+                files[activeFile] = cmEditor.getValue();
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
                 updateEditorUI();
             });
 
-            editor.addEventListener('scroll', () => { lineNumbers.scrollTop = editor.scrollTop; });
-
-            // Keyboard Shortcuts
-            document.addEventListener('keydown', (e) => {
-                if (document.activeElement === editor && e.key === 'Tab') {
-                    e.preventDefault();
-                    const s = editor.selectionStart, end = editor.selectionEnd;
-                    editor.value = editor.value.slice(0, s) + '    ' + editor.value.slice(end);
-                    editor.selectionStart = editor.selectionEnd = s + 4;
-                    editor.dispatchEvent(new Event('input'));
-                } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                    e.preventDefault();
-                    runPython();
-                } else if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
-                    e.preventDefault();
-                    openSearchModal();
-                } else if (e.key === 'Escape') {
-                    closeSearchModal();
-                }
-            });
+            const resizeObserver = new ResizeObserver(() => { cmEditor.refresh(); });
+            resizeObserver.observe(document.getElementById('editor-wrapper'));
         });
 
         // --- File Management ---
@@ -293,21 +518,28 @@
             Object.keys(files).forEach((name) => {
                 const isActive = name === activeFile;
                 const tab = document.createElement('div');
-                tab.className = `group flex items-center gap-2 pl-3 pr-2 h-8 rounded-t-md text-xs font-mono cursor-pointer border-t border-l border-r transition select-none ${isActive ? 'bg-[#0D131F] border-slate-800 text-indigo-300' : 'bg-transparent border-transparent text-slate-500 hover:text-slate-300'}`;
+                tab.className = `group flex items-center gap-2 pl-3 pr-2 h-8 rounded-t-md text-xs font-mono cursor-pointer border-t border-l border-r transition select-none ${isActive ? 'bg-theme-panel border-theme-border text-indigo-400' : 'bg-transparent border-transparent text-theme-muted hover:text-theme-text'}`;
                 tab.innerHTML = `<span>${name}</span>`;
 
                 if (Object.keys(files).length > 1) {
                     const closeBtn = document.createElement('button');
                     closeBtn.innerHTML = '&times;';
-                    closeBtn.className = 'opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 transition text-sm leading-none px-0.5';
-                    closeBtn.onclick = async (e) => { 
-                        e.stopPropagation(); 
+                    closeBtn.className = 'opacity-0 group-hover:opacity-100 text-theme-muted hover:text-rose-400 transition text-sm leading-none px-0.5';
+                    closeBtn.onclick = async (e) => {
+                        e.stopPropagation();
                         const confirmed = await openModal({ title: 'Delete File', msg: `Are you sure you want to delete "${name}"?`, confirmText: 'Delete', danger: true });
                         if (confirmed) {
                             delete files[name];
+                            
+                            // FIX: Ensure there is always at least one file
+                            if (Object.keys(files).length === 0) {
+                                files['main.py'] = '# New python file\n';
+                            }
+                            
                             if (activeFile === name) activeFile = Object.keys(files)[0];
                             localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
-                            renderTabs(); loadFileToEditor(activeFile);
+                            renderTabs(); 
+                            loadFileToEditor(activeFile);
                             toast(`Deleted ${name}`, 'info');
                         }
                     };
@@ -317,9 +549,8 @@
                 tabsBar.appendChild(tab);
             });
 
-            // Add File Button
             const addTab = document.createElement('button');
-            addTab.className = 'flex items-center justify-center h-8 w-8 text-slate-500 hover:text-slate-200 hover:bg-slate-900/60 rounded-t-md transition text-base shrink-0';
+            addTab.className = 'flex items-center justify-center h-8 w-8 text-theme-muted hover:text-theme-text hover:bg-theme-hover rounded-t-md transition text-base shrink-0';
             addTab.innerText = '+';
             addTab.onclick = async () => {
                 let name = await openModal({ title: 'New File', msg: 'Enter filename:', showInput: true, confirmText: 'Create' });
@@ -336,20 +567,22 @@
         }
 
         function loadFileToEditor(name) {
-            editor.value = files[name] || '';
+            if(cmEditor) {
+                cmEditor.setValue(files[name] || '');
+                cmEditor.clearHistory();
+                setTimeout(() => cmEditor.refresh(), 10);
+            }
             document.getElementById('active-filename-display').innerText = name;
-            updateEditorUI();
+            document.getElementById('char-count').innerText = `${(files[name] || '').length} chars`;
         }
 
         function updateEditorUI() {
-            document.getElementById('char-count').innerText = `${editor.value.length} chars`;
-            const lines = editor.value.split('\n').length;
-            lineNumbers.innerHTML = Array(lines).fill(0).map((_, i) => `${i + 1}<br>`).join('');
-            
-            const status = document.getElementById('save-status');
-            status.style.opacity = '1';
+            document.getElementById('char-count').innerText = `${cmEditor.getValue().length} chars`;
+
             clearTimeout(window.saveTimeout);
-            window.saveTimeout = setTimeout(() => { status.style.opacity = '0'; }, 900);
+            window.saveTimeout = setTimeout(() => {
+                toast('✓ File saved locally', 'success');
+            }, 1500);
         }
 
         // --- Search / Command Palette ---
@@ -367,18 +600,18 @@
         function closeSearchModal(event) {
             if (event && event.target !== searchBackdrop) return;
             searchBackdrop.classList.add('hidden');
-            editor.focus(); 
+            if(cmEditor) cmEditor.focus();
         }
 
         searchInput.addEventListener('input', (e) => executeSearch(e.target.value));
 
         function executeSearch(query) {
-            const results = [];
+            const fontMatches = [];
             const q = query.toLowerCase();
 
             for (const [name, content] of Object.entries(files)) {
                 if (name.toLowerCase().includes(q)) {
-                    results.push({ name, matchType: 'file' });
+                    fontMatches.push({ name, matchType: 'file' });
                 } else if (q.length > 0 && content.toLowerCase().includes(q)) {
                     const idx = content.toLowerCase().indexOf(q);
                     const start = Math.max(0, idx - 20);
@@ -386,29 +619,29 @@
                     let snippet = content.substring(start, end).replace(/\n/g, '  ');
                     if (start > 0) snippet = '...' + snippet;
                     if (end < content.length) snippet = snippet + '...';
-                    results.push({ name, matchType: 'content', snippet });
+                    fontMatches.push({ name, matchType: 'content', snippet });
                 }
             }
-            
+
             searchResults.innerHTML = '';
-            if (results.length === 0) {
-                searchResults.innerHTML = `<div class="text-xs text-slate-500 font-mono p-4 text-center">No matches found.</div>`;
+            if (fontMatches.length === 0) {
+                searchResults.innerHTML = `<div class="text-xs text-theme-muted font-mono p-4 text-center">No matches found.</div>`;
                 return;
             }
 
-            results.forEach((res) => {
+            fontMatches.forEach((res) => {
                 const el = document.createElement('div');
-                el.className = 'p-2.5 hover:bg-indigo-500/10 hover:border-indigo-500/30 border border-transparent rounded-md cursor-pointer flex flex-col gap-1 transition group';
+                el.className = 'p-2.5 hover:bg-theme-panel hover:border-indigo-500/30 border border-transparent rounded-md cursor-pointer flex flex-col gap-1 transition group';
                 el.onclick = () => { activeFile = res.name; renderTabs(); loadFileToEditor(activeFile); closeSearchModal(); };
 
                 const headerRow = document.createElement('div');
                 headerRow.className = 'flex items-center justify-between';
-                headerRow.innerHTML = `<span class="text-xs font-mono text-indigo-300">${res.name}</span><span class="text-[10px] uppercase text-slate-500">${res.matchType === 'content' ? 'Code Match' : 'File'}</span>`;
+                headerRow.innerHTML = `<span class="text-xs font-mono text-indigo-400">${res.name}</span><span class="text-[10px] uppercase text-theme-muted">${res.matchType === 'content' ? 'Code Match' : 'File'}</span>`;
                 el.appendChild(headerRow);
 
                 if (res.snippet) {
                     const snip = document.createElement('div');
-                    snip.className = 'text-[11px] font-mono text-slate-400 truncate opacity-80 pl-2 border-l border-slate-700/50 mt-1';
+                    snip.className = 'text-[11px] font-mono text-theme-muted truncate opacity-80 pl-2 border-l border-theme-border mt-1';
                     snip.textContent = res.snippet;
                     el.appendChild(snip);
                 }
@@ -420,85 +653,81 @@
         function clearConsole() { consoleOutput.textContent = ''; }
 
         async function runPython() {
-    if (isRunning) return;
+            if (isRunning) return;
 
-    // Check if the file contains an input statement
-    let programInputs = [];
-    if (editor.value.includes('input(')) {
-        const userInputString = await openModal({
-            title: 'Program Inputs Detected',
-            msg: "Your Python code uses input(). Since I am broke and can't afford Websockets and Dockers, please provide arguments separated by commas (e.g. Alice, 25) for each input call:",
-            showInput: true,
-            confirmText: 'Run with Inputs'
-        });
-        
-        if (userInputString === null) return; // User pressed cancel
-        if (userInputString.trim().length > 0) {
-            programInputs = userInputString.split(',').map(item => item.trim());
-        }
-    }
+            let programInputs = [];
+            if (cmEditor.getValue().includes('input(')) {
+                const userInputString = await openModal({
+                    title: 'Program Inputs Detected',
+                    msg: "Your Python code uses input(). Provide arguments separated by commas (e.g. Alice, 25):",
+                    showInput: true,
+                    confirmText: 'Run with Inputs'
+                });
 
-    isRunning = true;
-    runBtn.className = 'bg-slate-800 text-slate-400 text-xs px-4 py-1.5 rounded font-medium border border-slate-700/60 transition flex items-center gap-2 cursor-wait';
-    runBtn.innerHTML = `<svg class="w-3 h-3 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke-width="3"/></svg><span>Running...</span>`;
-    
-    clearConsole();
-    consoleOutput.textContent += `> Connecting to cloud sandbox... \n`;
+                if (userInputString === null) return;
+                if (userInputString.trim().length > 0) {
+                    programInputs = userInputString.split(',').map(item => item.trim());
+                }
+            }
 
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/run`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                files, 
-                activeFile, 
-                inputs: programInputs // Pass our arrays forward!
-            })
-        });
+            isRunning = true;
+            runBtn.className = 'bg-theme-panel text-theme-muted text-xs px-4 h-8 rounded font-medium border border-theme-border transition flex items-center gap-2 cursor-wait';
+            runBtn.innerHTML = `<svg class="w-3 h-3 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke-width="3"/></svg><span>Running...</span>`;
 
-        if (!response.ok) throw new Error(`Cloud Error: ${response.statusText}`);
+            clearConsole();
+            consoleOutput.textContent += `[SYSTEM] Connecting to cloud sandbox... \n`;
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let chunkBuffer = '';
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/run`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files, activeFile, inputs: programInputs })
+                });
 
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
+                if (!response.ok) throw new Error(`Cloud Error: ${response.statusText}`);
 
-            chunkBuffer += decoder.decode(value, { stream: true });
-            const lines = chunkBuffer.split('\n');
-            chunkBuffer = lines.pop(); 
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let chunkBuffer = '';
 
-            for (const line of lines) {
-                if (!line.trim()) continue;
-                try {
-                    const event = JSON.parse(line);
-                    if (event.type === 'stdout') {
-                        consoleOutput.textContent += event.text;
-                    } else if (event.type === 'stderr') {
-                        consoleOutput.innerHTML += `<span class="text-rose-400">${event.text}</span>`;
-                    } else if (event.type === 'exit') {
-                        consoleOutput.innerHTML += `<span class="text-slate-500 italic">\n[Process completed with exit code ${event.code}]\n</span>`;
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    chunkBuffer += decoder.decode(value, { stream: true });
+                    const lines = chunkBuffer.split('\n');
+                    chunkBuffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const event = JSON.parse(line);
+                            if (event.type === 'stdout') {
+                                consoleOutput.textContent += event.text;
+                            } else if (event.type === 'stderr') {
+                                consoleOutput.innerHTML += `<span class="text-rose-400">${event.text}</span>`;
+                            } else if (event.type === 'exit') {
+                                consoleOutput.innerHTML += `<span class="text-theme-muted italic">\n[Process completed with exit code ${event.code}]\n</span>`;
+                            }
+                            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+                        } catch (e) {}
                     }
-                    consoleOutput.scrollTop = consoleOutput.scrollHeight;
-                } catch (e) {}
+                }
+            } catch (err) {
+                consoleOutput.innerHTML += `<span class="text-rose-400">\nConnection Failure: Cannot hit backend.\n</span>`;
+            } finally {
+                isRunning = false;
+                runBtn.className = 'bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 h-8 rounded font-medium border border-indigo-500/40 shadow-sm transition flex items-center gap-2';
+                runBtn.innerHTML = `<span>Run</span>`;
+                cmEditor.focus();
             }
         }
-    } catch (err) {
-        consoleOutput.innerHTML += `<span class="text-rose-400">\nConnection Failure: Cannot hit backend.\n</span>`;
-    } finally {
-        isRunning = false;
-        runBtn.className = 'bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-4 py-1.5 rounded font-medium border border-indigo-500/40 shadow-sm transition flex items-center gap-2';
-        runBtn.innerHTML = `<span>Run Code</span>`;
-    }
-}
 
         // --- Focus Mode & Resizer ---
         let isFocusMode = false;
         const focusAudio = new Audio('https://coderadio-admin-v2.freecodecamp.org/listen/coderadio/radio.mp3');
         focusAudio.loop = true; focusAudio.volume = 0.4;
-        
+
         async function toggleFocusMode() {
             const btn = document.getElementById('focus-btn');
             if (!isFocusMode) {
@@ -507,7 +736,7 @@
                     focusAudio.play();
                     isFocusMode = true;
                     document.body.classList.add('focus-active');
-                    btn.classList.replace('bg-slate-800/40', 'bg-indigo-500/20');
+                    btn.classList.replace('bg-theme-panel', 'bg-indigo-500/20');
                     document.getElementById('focus-text').innerText = "Exit";
                     toast('Deep Work initialized. Radio playing.', 'success');
                 } catch (err) { toast('Could not enter fullscreen.', 'error'); }
@@ -516,11 +745,14 @@
                 focusAudio.pause();
                 isFocusMode = false;
                 document.body.classList.remove('focus-active');
-                btn.classList.replace('bg-indigo-500/20', 'bg-slate-800/40');
+                btn.classList.replace('bg-indigo-500/20', 'bg-theme-panel');
                 document.getElementById('focus-text').innerText = "Focus";
             }
         }
-        document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && isFocusMode) toggleFocusMode(); });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isFocusMode) toggleFocusMode();
+        });
 
         const resizer = document.getElementById('resizer');
         const consolePanel = document.getElementById('console-panel');
@@ -530,10 +762,11 @@
 
         function applyLayout() {
             if (window.innerWidth >= 768 && layoutSettings.width) {
-                consolePanel.style.width = `${layoutSettings.width}px`; consolePanel.style.height = ''; 
+                consolePanel.style.width = `${layoutSettings.width}px`; consolePanel.style.height = '';
             } else if (window.innerWidth < 768 && layoutSettings.height) {
-                consolePanel.style.height = `${layoutSettings.height}px`; consolePanel.style.width = ''; 
+                consolePanel.style.height = `${layoutSettings.height}px`; consolePanel.style.width = '';
             }
+            if(cmEditor) cmEditor.refresh();
         }
         applyLayout(); window.addEventListener('resize', applyLayout);
 
@@ -542,7 +775,7 @@
             const rect = consolePanel.getBoundingClientRect();
             startWidth = rect.width; startHeight = rect.height;
             document.body.classList.add(window.innerWidth >= 768 ? 'resizing-col' : 'resizing-row');
-            resizer.classList.add('dragging'); e.preventDefault(); 
+            resizer.classList.add('dragging'); e.preventDefault();
         });
 
         document.addEventListener('mousemove', (e) => {
@@ -561,7 +794,9 @@
             resizer.classList.remove('dragging');
             layoutSettings = window.innerWidth >= 768 ? { width: consolePanel.getBoundingClientRect().width } : { height: consolePanel.getBoundingClientRect().height };
             localStorage.setItem('sourcepad_layout', JSON.stringify(layoutSettings));
+            if(cmEditor) cmEditor.refresh();
         });
+
     </script>
 </body>
 </html>
