@@ -183,6 +183,62 @@
             });
         }
 
+        // --- Syntax Highlighting Engine (lightweight regex-based Python tokenizer) ---
+        const PY_KEYWORDS = ['and','as','assert','async','await','break','continue','del','elif','else','except','finally','for','from','global','if','import','in','is','lambda','nonlocal','not','or','pass','raise','return','try','while','with','yield'];
+        const PY_BUILTINS = ['abs','all','any','ascii','bin','bool','bytearray','bytes','callable','chr','classmethod','complex','delattr','dict','dir','divmod','enumerate','eval','exec','filter','float','format','frozenset','getattr','globals','hasattr','hash','hex','id','input','int','isinstance','issubclass','iter','len','list','locals','map','max','memoryview','min','next','object','oct','open','ord','pow','print','property','range','repr','reversed','round','set','setattr','slice','sorted','staticmethod','str','sum','super','tuple','type','vars','zip'];
+
+        const TOKEN_REGEX = new RegExp(
+            '(?<comment>#.*)' +
+            '|(?<tstring>"""[\\s\\S]*?"""|\'\'\'[\\s\\S]*?\'\'\')' +
+            '|(?<string>(?:[rRbBfFuU]{1,2})?(?:\'(?:[^\'\\\\\\n]|\\\\.)*\'|"(?:[^"\\\\\\n]|\\\\.)*"))' +
+            '|(?<decorator>@[A-Za-z_]\\w*)' +
+            '|\\b(?<defkw>def|class)(?<defws>\\s+)(?<defname>[A-Za-z_]\\w*)' +
+            '|\\b(?<selfcls>self|cls)\\b' +
+            '|\\b(?<boolnone>True|False|None)\\b' +
+            '|\\b(?<keyword>' + PY_KEYWORDS.join('|') + ')\\b' +
+            '|\\b(?<number>0[xX][0-9a-fA-F]+|0[oO][0-7]+|0[bB][01]+|\\d+\\.\\d*(?:[eE][+-]?\\d+)?|\\.\\d+(?:[eE][+-]?\\d+)?|\\d+(?:[eE][+-]?\\d+)?)[jJ]?\\b' +
+            '|\\b(?<builtin>' + PY_BUILTINS.join('|') + ')(?=\\s*\\()' +
+            '|\\b(?<call>[A-Za-z_]\\w*)(?=\\s*\\()',
+            'g'
+        );
+
+        function escapeHtml(s) {
+            return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+        }
+
+        function highlightPython(code) {
+            let out = '';
+            let last = 0;
+            TOKEN_REGEX.lastIndex = 0;
+            let m;
+            while ((m = TOKEN_REGEX.exec(code))) {
+                out += escapeHtml(code.slice(last, m.index));
+                const g = m.groups;
+                if (g.comment) out += `<span class="tok-comment">${escapeHtml(g.comment)}</span>`;
+                else if (g.tstring) out += `<span class="tok-string">${escapeHtml(g.tstring)}</span>`;
+                else if (g.string) out += `<span class="tok-string">${escapeHtml(g.string)}</span>`;
+                else if (g.decorator) out += `<span class="tok-decorator">${escapeHtml(g.decorator)}</span>`;
+                else if (g.defkw) {
+                    const cls = g.defkw === 'class' ? 'tok-class' : 'tok-function';
+                    out += `<span class="tok-keyword">${g.defkw}</span>${g.defws}<span class="${cls}">${escapeHtml(g.defname)}</span>`;
+                }
+                else if (g.selfcls) out += `<span class="tok-selfcls">${g.selfcls}</span>`;
+                else if (g.boolnone) out += `<span class="tok-boolnone">${g.boolnone}</span>`;
+                else if (g.keyword) out += `<span class="tok-keyword">${g.keyword}</span>`;
+                else if (g.number) out += `<span class="tok-number">${escapeHtml(m[0])}</span>`;
+                else if (g.builtin) out += `<span class="tok-builtin">${g.builtin}</span>`;
+                else if (g.call) out += `<span class="tok-function">${escapeHtml(g.call)}</span>`;
+                last = TOKEN_REGEX.lastIndex;
+                if (m.index === TOKEN_REGEX.lastIndex) TOKEN_REGEX.lastIndex++;
+            }
+            out += escapeHtml(code.slice(last));
+            return out;
+        }
+
+        function updateHighlight() {
+            document.getElementById('highlight-code').innerHTML = highlightPython(editor.value) + '\n';
+        }
+
         // --- Workspace Initialization ---
         const STORAGE_KEY = 'sourcepad_workspace_final';
         let isRunning = false;
