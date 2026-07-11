@@ -36,6 +36,21 @@
         body.resizing-col { cursor: col-resize; user-select: none; }
         body.resizing-row { cursor: row-resize; user-select: none; }
         body.resizing-col *, body.resizing-row * { transition: none !important; }
+
+        /* Syntax Highlighting Token Colors (mirrors the app's indigo/emerald/rose/slate palette) */
+        #highlight-code .tok-keyword   { color: #818CF8; font-weight: 600; } /* indigo-400 */
+        #highlight-code .tok-boolnone  { color: #A78BFA; font-weight: 600; } /* violet-400 */
+        #highlight-code .tok-string    { color: #34D399; } /* emerald-400 */
+        #highlight-code .tok-number    { color: #FBBF24; } /* amber-400 */
+        #highlight-code .tok-comment   { color: #64748B; font-style: italic; } /* slate-500 */
+        #highlight-code .tok-decorator { color: #E879F9; } /* fuchsia-400 */
+        #highlight-code .tok-selfcls   { color: #FDA4AF; font-style: italic; } /* rose-300 */
+        #highlight-code .tok-function  { color: #38BDF8; } /* sky-400 */
+        #highlight-code .tok-class     { color: #5EEAD4; } /* teal-300 */
+        #highlight-code .tok-builtin   { color: #22D3EE; } /* cyan-400 */
+
+        /* Overlay editor: textarea text is invisible, the <pre> beneath supplies the colored text */
+        #code-editor { caret-color: #e2e8f0; }
     </style>
 </head>
 <body class="bg-[#0B0F17] text-slate-200 min-h-screen flex flex-col antialiased selection:bg-indigo-500/30">
