@@ -273,8 +273,8 @@
 
         <section id="console-panel" class="w-full md:w-[440px] lg:w-[540px] bg-theme-console flex flex-col shrink-0 min-h-0 relative">
             <div class="bg-theme-console px-4 h-9 border-b border-theme-border flex items-center justify-between shrink-0">
-                <span class="text-[11px] uppercase tracking-wider text-theme-muted font-medium font-mono">Terminal Output</span>
-                <button onclick="clearConsole()" class="text-[11px] text-theme-muted hover:text-theme-text transition font-mono">Clear</button>
+                <span class="text-[11px] uppercase tracking-wider text-theme-muted font-medium font-sans">Terminal Output</span>
+                <button onclick="clearConsole()" class="text-[11px] text-theme-muted hover:text-theme-text transition font-sans">Clear</button>
             </div>
             <pre id="console-output" class="flex-1 p-4 font-sans text-[14px] overflow-y-auto whitespace-pre-wrap leading-relaxed text-theme-text">// Ready to execute code.</pre>
         </section>
@@ -675,7 +675,7 @@
             runBtn.innerHTML = `<svg class="w-3 h-3 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke-width="3"/></svg><span>Running...</span>`;
 
             clearConsole();
-            consoleOutput.textContent += `[SYSTEM] Connecting to cloud sandbox... \n`;
+            consoleOutput.textContent += `[SYSTEM] Connecting to cloud sandbox... \n First time running may take a while...`;
 
             try {
                 const response = await fetch(`${BACKEND_URL}/api/run`, {
