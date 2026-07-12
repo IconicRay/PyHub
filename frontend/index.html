@@ -675,7 +675,7 @@
             runBtn.innerHTML = `<svg class="w-3 h-3 spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke-width="3"/></svg><span>Running...</span>`;
 
             clearConsole();
-            consoleOutput.textContent += `[SYSTEM] Connecting to cloud sandbox... \nFirst time running may take a while...`;
+            consoleOutput.textContent += `[SYSTEM] Connecting to cloud sandbox... \nFirst time running may take a while... \n`;
 
             try {
                 const response = await fetch(`${BACKEND_URL}/api/run`, {
