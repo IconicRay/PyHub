@@ -1,1 +1,30 @@
-A free python IDE that stores ur files in localstorage, making it completely private. However it is linked to a backend server for the python code to run.
+# pyHub
+
+_pyHub_ is a lightweight, web-based Python IDE designed for quick coding, testing, and execution directly in your browser. It provides a clean, distraction-free environment to write Python scripts and view terminal outputs in real-time.
+
+### Features
+- In-Browser Execution: Write and run Python code instantly without local environment setup.
+
+- Terminal Output: Integrated terminal view to see the results of your code execution immediately.
+
+- Customizable Themes: Switch between various Dark and Light themes (including Midnight, Nordic, Rosé Pine, Bloom, Paper, and Frost) to suit your workflow.
+
+- Minimalist Interface: A streamlined editor optimized for focus and speed.
+
+### How to Use
+- Access: Open pyHub in your preferred web browser.
+
+- Code: Use the main.py editor tab to write your Python code.
+
+- Run: Click the Run button to execute your script.
+
+- View: See your results displayed directly in the Terminal Output panel below the editor.
+
+- Customize: Adjust your visual experience by accessing the Theme Settings to select your preferred interface style.
+
+### Technologies Used
+- Hosting: Netlify
+
+- Backend: Render
+
+- Platform: Web-based IDE environment
