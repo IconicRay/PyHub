@@ -2,9 +2,9 @@
 
 _pyHub_ is a lightweight, web-based Python IDE designed for quick coding, testing, and execution directly in your browser. It provides a clean, distraction-free environment to write Python scripts and view terminal outputs in real-time.
 
-### Download
+[Download for Windows](https://github.com/IconicRay/PyHub/releases/download/app/pyHub-win32-x64.zip)
 
-[for Windows x64](https://github.com/IconicRay/PyHub/releases/download/app/pyHub-win32-x64.zip)
+[Open Website](https://thepyhub.netlify.app)
 
 ### Features
 - In-Browser Execution: Write and run Python code instantly without local environment setup.
